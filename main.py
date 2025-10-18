@@ -1,19 +1,21 @@
 import queue
 import threading
 import time 
+import tcplistener
 
 def main():
-    filename = "message.txt"
+#    filename = "message.txt"
 
-    q = queue.Queue()
+    #q = queue.Queue()
 
-    producer_thread = threading.Thread(target=producer, args=(filename, q))
-    producer_thread.start()
+    #producer_thread = threading.Thread(target=producer, args=(filename, q))
+    #producer_thread.start()
 
-    consumer(q)
+    #consumer(q)
 
-    producer_thread.join()
-
+    #producer_thread.join()
+    listener = tcplistener.TcpListener()
+    listener.start()    
 
 def producer(fileName, queue):
     with open(fileName, "r") as file:
