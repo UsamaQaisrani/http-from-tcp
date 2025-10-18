@@ -1,4 +1,5 @@
 import socket
+from request import RequestLine, Headers
 
 class TcpListener:
     def __init__(self) -> None:
@@ -9,10 +10,13 @@ class TcpListener:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((self.host, self.port))
             sock.listen()
+            print(f"Listening on port: {self.port}")
 
             conn, addr = sock.accept()
-            while conn:
+            with conn:
                 print(f"Connection accepted from: {addr}")
 
                 while (data := conn.recv(1024)):
-                    print(data.decode(), end="")
+                    decodedData = data.decode("utf-8")
+                    startLine = RequestLine(decodedData.splitlines()[0])
+                    headers = Headers(decodedData.split("\r\n")[1:])
