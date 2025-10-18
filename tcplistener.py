@@ -20,3 +20,12 @@ class TcpListener:
                     decodedData = data.decode("utf-8")
                     startLine = RequestLine(decodedData.splitlines()[0])
                     headers = Headers(decodedData.split("\r\n")[1:])
+                    body = None
+
+                    if "Content-Length" in headers.headerDict \
+                        or "Transfer-Encoding" in headers.headerDict: 
+                        #POST Request
+                        pass
+                    else:
+                        #GET Request
+                        pass

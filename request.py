@@ -28,3 +28,8 @@ class Headers:
             key, value = line.split(":", 1)
             self.headerDict[key.strip()] = value.strip()
         print(f"Headers: {self.headerDict}")
+
+
+class Body:
+    def __init__(self, data) -> None:
+        self.data = data
