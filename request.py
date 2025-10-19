@@ -28,11 +28,6 @@ class Headers:
             headerDict[key.strip()] = value.strip()
         return (headerDict, None)
 
-class ResponseType(Enum):
-    OK = (200, "OK")
-    NOT_FOUND = (404, "Not found")
-    INTERNAL_ERROR = (500, "Internal server error.")
-
 class RequesType(Enum):
     GET = "GET"
     POST = "POST"

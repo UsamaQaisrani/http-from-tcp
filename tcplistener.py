@@ -1,5 +1,6 @@
 import socket
-from request import RequestLine, Headers
+from request import *
+from response import *
 
 class TcpListener:
     def __init__(self) -> None:
@@ -13,6 +14,12 @@ class TcpListener:
             print(f"Listening on port: {self.port}")
 
             conn, addr = sock.accept()
+
+            def stopServer():
+                if conn:
+                    conn.shutdown(socket.SHUT_RDWR)
+                    conn.close()
+
             with conn:
                 print(f"Connection accepted from: {addr}")
 
@@ -23,29 +30,34 @@ class TcpListener:
 
                     startLine, err = RequestLine(headerData.splitlines()[0]).getParts()
                     if err is not None:
-                        print(err)
-                        conn.close()
+                        response = Response(ResponseType.BAD_REQUEST, err).createResponse()
+                        stopServer()
                         break
+                    method, path, version = startLine
 
                     headers, err = Headers(headerData.split("\r\n")[1:]).getPairs()
                     if err is not None:
-                        print(err)
-                        conn.close()
+                        response = Response(ResponseType.BAD_REQUEST, err).createResponse()
+                        stopServer()
                         break
+                
+                    if method == "POST":
+                        contentLength = int(headers.get("Content-Length", 0))
+                        if contentLength: 
+                            while len(body) < contentLength:
+                                moreData = conn.recv(contentLength - len(body))
+                                if not moreData or moreData == "":
+                                    break
+                                body += moreData
+                        if contentLength < len(body):
+                            message = "Incomplete data sent to the server."
+                            response = Response(ResponseType.BAD_REQUEST, message).createResponse()
+                            stopServer()
+                            break
 
-                    contentLength = int(headers.get("Content-Length", 0))
-                    if contentLength: 
-                        while len(body) < contentLength:
-                            moreData = conn.recv(contentLength - len(body))
-                            if not moreData or moreData == "":
-                                break
-                            body += moreData
-                    if contentLength < len(body):
-                        print("Incomplete data sent.")
-                        conn.close()
-                        break
-
-                    conn.sendall(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK")
-                    conn.close()
+                    message = "All data received!"
+                    response = Response(ResponseType.OK.value, message).createResponse()
+                    conn.sendall(response)
+                    stopServer()
                     break
                     
