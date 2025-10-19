@@ -18,14 +18,18 @@ class TcpListener:
 
                 while (data := conn.recv(1024)):
                     decodedData = data.decode("utf-8")
-                    startLine = RequestLine(decodedData.splitlines()[0])
-                    headers = Headers(decodedData.split("\r\n")[1:])
-                    body = None
+                    headerData, _, bodyData = decodedData.partition("\r\n\r\n")
+                    body = bodyData.encode()
+                    startLine = RequestLine(headerData.splitlines()[0])
+                    header = Headers(headerData.split("\r\n")[1:])
 
-                    if "Content-Length" in headers.headerDict \
-                        or "Transfer-Encoding" in headers.headerDict: 
-                        #POST Request
-                        pass
-                    else:
-                        #GET Request
-                        pass
+                    contentLength = int(header.headerDict.get("Content-Length", 0))
+
+                    if contentLength: 
+                        while len(body) < contentLength:
+                            moreData = conn.recv(contentLength - len(body))
+                            if not moreData:
+                                break
+                            body += moreData
+                    print("Body:", body)
+                    

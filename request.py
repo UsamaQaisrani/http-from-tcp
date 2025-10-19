@@ -24,7 +24,6 @@ class Headers:
         for line in self.lines:
             if self.lines == "" or ":" not in line:
                 break
-            print(line)
             key, value = line.split(":", 1)
             self.headerDict[key.strip()] = value.strip()
         print(f"Headers: {self.headerDict}")
