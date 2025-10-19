@@ -1,34 +1,38 @@
+from enum import Enum
+
 class RequestLine:
-    def __init__(self, line) -> None:
+    def __init__(self, line):
        self.line = line 
-       self.method = None
-       self.path = None
-       self.version = None
-       self.getParts()
 
     def getParts(self):
         parts = self.line.split(" ")
         if len(parts) == 3:
-            self.method, self.path, self.version = parts
-            print(f"Method={self.method}, Path={self.path}, Version={self.version}")
+            return (parts, None)
         else:
-            print("Invalid startline for the request header.")
+            err = "Invalid startline for the request header."
+            return (parts, err)
 
 class Headers:
-    def __init__(self, lines) -> None:
-        self.headerDict = {}
+    def __init__(self, lines):
         self.lines = lines
-        self.getPairs()
 
     def getPairs(self):
+        headerDict = {}
         for line in self.lines:
-            if self.lines == "" or ":" not in line:
+            if line == "":
                 break
+            if ":" not in line:
+                err = "Invalid header, expected key:value pairs."
+                return (headerDict, err)
             key, value = line.split(":", 1)
-            self.headerDict[key.strip()] = value.strip()
-        print(f"Headers: {self.headerDict}")
+            headerDict[key.strip()] = value.strip()
+        return (headerDict, None)
 
+class ResponseType(Enum):
+    OK = (200, "OK")
+    NOT_FOUND = (404, "Not found")
+    INTERNAL_ERROR = (500, "Internal server error.")
 
-class Body:
-    def __init__(self, data) -> None:
-        self.data = data
+class RequesType(Enum):
+    GET = "GET"
+    POST = "POST"

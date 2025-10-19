@@ -20,16 +20,32 @@ class TcpListener:
                     decodedData = data.decode("utf-8")
                     headerData, _, bodyData = decodedData.partition("\r\n\r\n")
                     body = bodyData.encode()
-                    startLine = RequestLine(headerData.splitlines()[0])
-                    header = Headers(headerData.split("\r\n")[1:])
 
-                    contentLength = int(header.headerDict.get("Content-Length", 0))
+                    startLine, err = RequestLine(headerData.splitlines()[0]).getParts()
+                    if err is not None:
+                        print(err)
+                        conn.close()
+                        break
 
+                    headers, err = Headers(headerData.split("\r\n")[1:]).getPairs()
+                    if err is not None:
+                        print(err)
+                        conn.close()
+                        break
+
+                    contentLength = int(headers.get("Content-Length", 0))
                     if contentLength: 
                         while len(body) < contentLength:
                             moreData = conn.recv(contentLength - len(body))
-                            if not moreData:
+                            if not moreData or moreData == "":
                                 break
                             body += moreData
-                    print("Body:", body)
+                    if contentLength < len(body):
+                        print("Incomplete data sent.")
+                        conn.close()
+                        break
+
+                    conn.sendall(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK")
+                    conn.close()
+                    break
                     
